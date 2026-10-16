@@ -1,3 +1,7 @@
+#####################################################
+#---------------TEST 1------------------------------#
+#####################################################
+
 # Test cluster: HDFS (1 namenode + 2 datanodes) + Spark standalone (1 master + 2 workers)
 # YARN is left out on purpose to save RAM; Spark uses its own standalone scheduler.
 # Run from this folder:  docker compose up -d
