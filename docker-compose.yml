@@ -1,0 +1,107 @@
+# Test cluster: HDFS (1 namenode + 2 datanodes) + Spark standalone (1 master + 2 workers) + Jupyter
+# YARN is left out on purpose to save RAM; Spark uses its own standalone scheduler.
+# Run from this folder:  docker compose up -d
+name: pruebas
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: pruebas-namenode
+    restart: unless-stopped
+    ports:
+      - 9870:9870   # HDFS web UI
+      - 9000:9000   # HDFS RPC
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - /home/shadow33/zipmuygrande:/data:ro   # airline CSVs, to load with hdfs dfs -put
+    environment:
+      - CLUSTER_NAME=pruebas
+      - HDFS_CONF_dfs_replication=2
+    env_file:
+      - ../hadoop.env
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: pruebas-datanode1
+    restart: unless-stopped
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+      HDFS_CONF_dfs_replication: 2
+    env_file:
+      - ../hadoop.env
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: pruebas-datanode2
+    restart: unless-stopped
+    volumes:
+      - hadoop_datanode2:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+      HDFS_CONF_dfs_replication: 2
+    env_file:
+      - ../hadoop.env
+
+  # Spark master + workers use the same image as the spark-course Jupyter container,
+  # so Spark (4.x) and Python versions match between driver and executors.
+  spark-master:
+    image: quay.io/jupyter/pyspark-notebook
+    container_name: pruebas-spark-master
+    hostname: spark-master
+    restart: unless-stopped
+    command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.master.Master",
+              "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
+    ports:
+      - 8080:8080   # Spark master web UI
+      - 7077:7077   # Spark master RPC
+
+  spark-worker1: &spark-worker
+    image: quay.io/jupyter/pyspark-notebook
+    container_name: pruebas-spark-worker1
+    hostname: spark-worker1
+    restart: unless-stopped
+    command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker",
+              "--cores", "2", "--memory", "2g", "--webui-port", "8081",
+              "spark://spark-master:7077"]
+    environment:
+      - HADOOP_USER_NAME=root
+    volumes:
+      # Same path as in the notebook container, so relative paths like "data/sales" work
+      - /home/shadow33/spark-course:/home/jovyan/work
+    ports:
+      - 8081:8081
+    depends_on:
+      - spark-master
+
+  spark-worker2:
+    <<: *spark-worker
+    container_name: pruebas-spark-worker2
+    hostname: spark-worker2
+    ports:
+      - 8082:8081
+
+  # Jupyter (driver), same setup as the spark-course container but attached to this cluster
+  jupyter:
+    image: quay.io/jupyter/pyspark-notebook
+    container_name: pruebas-jupyter
+    hostname: jupyter
+    restart: unless-stopped
+    environment:
+      - HADOOP_USER_NAME=root
+      # SparkSession.builder.getOrCreate() connects to the cluster instead of local[*]
+      - PYSPARK_SUBMIT_ARGS=--master spark://spark-master:7077 --driver-memory 1g --executor-memory 2g pyspark-shell
+    volumes:
+      - /home/shadow33/spark-course:/home/jovyan/work
+    ports:
+      - 8888:8888   # Jupyter
+      - 4040:4040   # Spark application UI
+    depends_on:
+      - spark-master
+      - namenode
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode1:
+  hadoop_datanode2:
