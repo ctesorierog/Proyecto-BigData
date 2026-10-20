@@ -133,6 +133,16 @@ Antes de lanzar el pipeline o un notebook, comprobar en http://localhost:8080 qu
 | Hadoop Streaming, 22 años | 295 pares (año, aerolínea), ~175 s |
 | Spark RDD, 22 años | mismos 295 pares y mismos conteos que Hadoop, ~97 s |
 
+## Problemas conocidos
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| `Bind for 0.0.0.0:9870 failed: port is already allocated` (o 8080, 8888) | Otro clúster usa los mismos puertos, p. ej. el `docker-hadoop` de clase, que vuelve a arrancar solo al reiniciar Docker | `docker ps` para ver cuál; `docker stop <contenedores>`; para que no vuelva a arrancar solo: `docker update --restart=no <contenedores>` |
+| El NameNode se reinicia en bucle (`Restarting (1)`) y su log dice `UnknownHostException: namenode` | Su red quedó a medias tras un arranque fallido o un reinicio brusco de Docker | `docker compose down` y `docker compose up -d` (sin `-v`: los datos de HDFS se conservan) |
+| `SafeModeException: Name node is in safe mode` | Justo tras arrancar, el NameNode no admite escrituras hasta que los DataNodes informan de sus bloques | `docker compose exec namenode hdfs dfsadmin -safemode wait` (el pipeline ya espera solo) |
+| `failed to connect to the docker API` | Docker Desktop no está abierto | Abrirlo y esperar a "Engine running" |
+| La sesión de Spark se queda en `WAITING` | Otra aplicación (un kernel de Jupyter abierto) ocupa los 4 cores | Cerrar el kernel o `docker compose restart jupyter` |
+
 ## Configuración
 
 Todas las rutas y parámetros del pipeline están en **`config/pipeline.yaml`**; los scripts de `scripts/` y `spark/` los leen de ahí (`cfg`) en vez de escribirlos en el código.
