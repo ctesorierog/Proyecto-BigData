@@ -5,6 +5,7 @@ different one is uploaded to a hidden temporary name and then renamed, so the
 raw zone never contains half-written files and a rerun never duplicates data.
 Uses the Hadoop FileSystem API through Spark (Spark is an HDFS client).
 """
+import time
 from pathlib import Path
 
 
@@ -15,9 +16,21 @@ def _hdfs(spark, url):
     return fs, jvm.org.apache.hadoop.fs.Path
 
 
+def wait_for_safe_mode(fs, timeout_s=180):
+    """Right after a (re)start the NameNode is in safe mode and refuses writes
+    until the DataNodes have reported their blocks. Wait instead of failing."""
+    t0 = time.time()
+    while fs.isInSafeMode():
+        if time.time() - t0 > timeout_s:
+            raise TimeoutError("NameNode still in safe mode after %ss" % timeout_s)
+        print("  NameNode in safe mode, waiting...", flush=True)
+        time.sleep(5)
+
+
 def run(spark, cfg, data_dir):
     data_dir = Path(data_dir)
     fs, HPath = _hdfs(spark, cfg["hdfs"]["url"])
+    wait_for_safe_mode(fs)
     zones = cfg["zones"]
     years = range(cfg["data"]["first_year"], cfg["data"]["last_year"] + 1)
 
@@ -50,4 +63,6 @@ def run(spark, cfg, data_dir):
     if bad:
         raise RuntimeError(f"Size mismatch in HDFS raw zone: {bad}")
     print(f"  raw zone OK: {len(plan)} files ({len(uploaded)} uploaded, {len(skipped)} already there)")
-    return {"uploaded": uploaded, "skipped": len(skipped), "files": len(plan)}
+    total_bytes = sum(p.stat().st_size for p, _ in plan)
+    return {"files": len(plan), "bytes": total_bytes,
+            "uploaded": uploaded, "skipped": len(skipped)}

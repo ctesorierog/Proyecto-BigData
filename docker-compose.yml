@@ -12,7 +12,8 @@ x-hadoop-env: &hadoop-env
 services:
   # The librarian: keeps the catalog of which block is on which DataNode
   namenode:
-    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    image: proyecto-bigdata/namenode-python:hadoop3.2.1
+    build: ./docker/hadoop-python      # bde2020 NameNode + python3 for Hadoop Streaming
     hostname: namenode
     restart: unless-stopped
     environment:
@@ -23,6 +24,7 @@ services:
     volumes:
       - hadoop_namenode:/hadoop/dfs/name
       - ./data:/data:ro   # your laptop's data/ folder, visible inside as /data
+      - ./mapreduce:/opt/mapreduce:ro   # Hadoop Streaming scripts (workstream 3)
 
   # The shelves: store the 128 MB blocks
   datanode1:

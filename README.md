@@ -22,7 +22,7 @@ Arquitectura Big Data local con **HDFS + Spark en Docker** sobre los vuelos entr
 
 | Servicio | Imagen | Función | Recursos |
 |---|---|---|---|
-| `namenode` | `bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8` | Maestro de HDFS: metadatos (qué bloques forman cada fichero y en qué DataNode están). Ve la carpeta `data/` del repo como `/data` (solo lectura). | – |
+| `namenode` | `bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8` + Python 3 (`docker/hadoop-python/Dockerfile`) | Maestro de HDFS: metadatos (qué bloques forman cada fichero y en qué DataNode están). Ve `data/` como `/data` y `mapreduce/` como `/opt/mapreduce` (solo lectura). También ejecuta Hadoop Streaming. | – |
 | `datanode1`, `datanode2` | `bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8` | Guardan los bloques de 128 MB. Con `dfs.replication=2` cada bloque está en los dos. | – |
 | `spark-master` | `quay.io/jupyter/pyspark-notebook@sha256:8043…` | Planificador de Spark standalone: reparte tareas entre los workers. | – |
 | `spark-worker1`, `spark-worker2` | misma imagen | Ejecutan las tareas. | 2 cores · 2 GB cada uno |
@@ -34,6 +34,7 @@ Arquitectura Big Data local con **HDFS + Spark en Docker** sobre los vuelos entr
 - **2 workers × 2 cores × 2 GB**: el reparto entre máquinas es visible y todo cabe en los 8 GB de Docker (~7 GB con HDFS, master y driver).
 - **Misma imagen, fijada por digest, para master, workers y Jupyter**: driver y executors necesitan exactamente la misma versión de Spark (4.2.0) y de Python; el digest garantiza el mismo contenido en todos los portátiles.
 - **Sin YARN**: Spark usa su planificador standalone y Hadoop Streaming se ejecuta en modo local dentro del NameNode. Ahorra ~2 GB de RAM.
+- **NameNode con Python 3** (imagen propia, se construye sola con `docker compose up`): Hadoop Streaming necesita Python para el mapper y el reducer, y así no hay que instalar nada a mano. La imagen base es Debian 9, por eso es **Python 3.5** (sin f-strings en `mapreduce/*.py`).
 - **Configuración de Hadoop en el propio Compose** (bloque `x-hadoop-env`), sin ficheros externos ni rutas personales: el repo funciona tal cual al clonarlo.
 - `--conf spark.hadoop.dfs.replication=2`: por defecto un cliente Spark escribe 3 réplicas, más que DataNodes tenemos.
 - Workers con `--work-dir /tmp/spark-work`: el usuario `jovyan` de la imagen no puede escribir en `/usr/local/spark/work`.
@@ -44,7 +45,7 @@ Arquitectura Big Data local con **HDFS + Spark en Docker** sobre los vuelos entr
 ```bash
 git clone https://github.com/ctesorierog/Proyecto-BigData.git
 cd Proyecto-BigData
-docker compose up -d          # la primera vez descarga las imágenes (~3 GB)
+docker compose up -d          # la primera vez descarga las imágenes (~3 GB) y construye el NameNode
 docker compose ps             # 7 contenedores "Up"
 ```
 
@@ -59,6 +60,8 @@ Si hay otro clúster usando los mismos puertos (p. ej. el `docker-hadoop` de cla
 | Spark Application UI | http://localhost:4040 (solo con una sesión abierta) |
 
 Parar: `docker compose down` (conserva HDFS) · `docker compose down -v` (borra también los volúmenes de HDFS).
+
+Tras arrancar, el NameNode pasa unos segundos en *safe mode* (no admite escrituras hasta que los DataNodes informan de sus bloques). El pipeline espera solo; para comandos manuales: `docker compose exec namenode hdfs dfsadmin -safemode wait`.
 
 ## Ejecutar el pipeline
 
@@ -85,11 +88,11 @@ Cada paso de `spark/` es un fichero con una función `run(spark, cfg)`; si el fi
 - `ingest` salta los ficheros que ya están en HDFS con el mismo tamaño; los nuevos se suben a un nombre temporal oculto y se renombran, así la zona raw nunca contiene un fichero a medias. Al final comprueba que están los 24 ficheros con su tamaño exacto.
 - Los pasos de Spark escriben con `mode("overwrite")`.
 
-Prueba: dos ejecuciones seguidas dan `raw zone OK: 24 files (0 uploaded, 24 already there)` (`evidence/pipeline_runs/`).
+Cada paso devuelve sus conteos (ficheros, bytes, filas) y quedan en el log de la ejecución, así se puede comprobar que la segunda ejecución da los mismos números. Comprobado hasta ahora para `download` e `ingest`: dos ejecuciones seguidas dan `raw zone OK: 24 files (0 uploaded, 24 already there)` (`evidence/pipeline_runs/`); los pasos de Spark se añadirán a esta prueba con la ejecución final.
 
 ## Configuración
 
-Todas las rutas y parámetros están en **`config/pipeline.yaml`**; ningún script ni notebook las escribe a mano.
+Todas las rutas y parámetros del pipeline están en **`config/pipeline.yaml`**; los scripts de `scripts/` y `spark/` los leen de ahí (`cfg`) en vez de escribirlos en el código.
 
 ```yaml
 zones:
@@ -103,7 +106,7 @@ También guarda las reglas comunes a todos los workstreams: vuelo válido (`Canc
 
 ## Datos
 
-- 22 ficheros anuales, 1987–2008 (2008 solo incluye los primeros meses: 234 MB frente a ~700 MB de un año completo).
+- 22 ficheros anuales, 1987–2008 (`2008.csv` ocupa 234 MB frente a 500–700 MB del resto de años: el fichero publicado no cubre el año completo).
 - Zona raw en HDFS: **10,8 GiB** de datos, **21,6 GiB** en disco por la replicación 2.
 - `data/` está en `.gitignore`: los datos nunca se suben a GitHub; se reproducen con `download`.
 
