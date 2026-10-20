@@ -1,0 +1,23 @@
+# Quick test config: 3 years, separate HDFS area, reads the real raw zone (read-only).
+# docker compose exec jupyter python work/scripts/run_pipeline.py --config work/config/pipeline_test.yaml --steps etl quality analysis ml
+hdfs:
+  url: hdfs://namenode:9000
+  replication: 2
+spark:
+  master: spark://spark-master:7077
+zones:
+  raw_flights: /airline/raw/flights
+  raw_lookup:  /airline/raw/lookup
+  curated:     /airline_test/curated/flights
+  results:     /airline_test/results
+data:
+  local_dir: data
+  first_year: 2006
+  last_year: 2008
+  source_doi: doi:10.7910/DVN/HG7NV7
+  source_api: https://dataverse.harvard.edu/api
+  lookup_files: [airports.csv, carriers.csv]
+partition_column: Year
+valid_flight: "Cancelled = 0 AND Diverted = 0 AND ArrDelay IS NOT NULL"
+delayed: "ArrDelay > 15"
+min_flights_per_group: 100

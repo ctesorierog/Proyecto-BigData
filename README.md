@@ -132,6 +132,11 @@ Antes de lanzar el pipeline o un notebook, comprobar en http://localhost:8080 qu
 | `fsck` de `2007.csv` | 6 bloques, replicación 2, HEALTHY |
 | Hadoop Streaming, 22 años | 295 pares (año, aerolínea), ~175 s |
 | Spark RDD, 22 años | mismos 295 pares y mismos conteos que Hadoop, ~97 s |
+| Pipeline completo (`run_pipeline.py`) | 6 pasos `ok` en ~4,5 min; curated 118.914.458 filas, 116.411.532 vuelos válidos |
+| Consultas (zona results) | Q1 295 filas · Q2 851 · Q3 2.819 |
+| Calidad | 0 stops; aviso por 202.007 distancias no válidas (0,17 %) |
+| ML (train 2006, test 2007) | AUC ROC 0,632 frente a 0,5 del clasificador trivial; accuracy 0,762 frente a 0,763 |
+| Segunda ejecución | mismos conteos (`evidence/pipeline_runs/idempotencia_run1_vs_run2.json`) |
 
 ## Problemas conocidos
 

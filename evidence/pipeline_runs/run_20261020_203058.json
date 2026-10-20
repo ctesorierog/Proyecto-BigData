@@ -1,0 +1,167 @@
+{
+  "started": "20261020_203058",
+  "steps": [
+    {
+      "step": "download",
+      "status": "ok",
+      "seconds": 0.1,
+      "result": {
+        "downloaded": [],
+        "skipped": 24
+      }
+    },
+    {
+      "step": "ingest",
+      "status": "ok",
+      "seconds": 9.5,
+      "result": {
+        "files": 24,
+        "bytes": 11574141144,
+        "uploaded": [],
+        "skipped": 24
+      }
+    },
+    {
+      "step": "etl",
+      "status": "ok",
+      "seconds": 194.8,
+      "result": {
+        "curated": "hdfs://namenode:9000/airline/curated/flights",
+        "years": 22,
+        "partition_column": "Year",
+        "counts": {
+          "filas": 118914458,
+          "vuelo_valido": 116411532,
+          "apto_consulta_1": 116411532,
+          "apto_consulta_2": 116411532,
+          "apto_consulta_3": 116411532,
+          "apto_modelo": 116212110
+        },
+        "motivo_vuelo": {
+          "cancelado": 2230332,
+          "valido": 116411532,
+          "desviado": 272593,
+          "ArrDelay no disponible": 1
+        }
+      }
+    },
+    {
+      "step": "quality",
+      "status": "ok",
+      "seconds": 10.1,
+      "result": {
+        "path": "hdfs://namenode:9000/airline/results/spark/quality",
+        "years": 22,
+        "totals": {
+          "filas": 118914458,
+          "year_invalido": 0,
+          "estado_nulo": 0,
+          "estado_fuera_de_rango": 0,
+          "cancelados": 2230332,
+          "desviados": 272593,
+          "arrdelay_nulo": 2502926,
+          "month_invalido": 0,
+          "dayofweek_invalido": 0,
+          "distance_invalida": 202007,
+          "vuelos_validos": 116411532,
+          "apto_consulta_1": 116411532,
+          "apto_consulta_2": 116411532,
+          "apto_consulta_3": 116411532,
+          "apto_modelo": 116212110
+        },
+        "actions": [
+          {
+            "control": "year_invalido",
+            "valor": 0,
+            "pct": 0.0,
+            "accion": "ok"
+          },
+          {
+            "control": "estado_nulo",
+            "valor": 0,
+            "pct": 0.0,
+            "accion": "ok"
+          },
+          {
+            "control": "estado_fuera_de_rango",
+            "valor": 0,
+            "pct": 0.0,
+            "accion": "ok"
+          },
+          {
+            "control": "month_invalido",
+            "valor": 0,
+            "pct": 0.0,
+            "accion": "ok"
+          },
+          {
+            "control": "dayofweek_invalido",
+            "valor": 0,
+            "pct": 0.0,
+            "accion": "ok"
+          },
+          {
+            "control": "distance_invalida",
+            "valor": 202007,
+            "pct": 0.1699,
+            "accion": "warn"
+          },
+          {
+            "control": "cancelados",
+            "valor": 2230332,
+            "accion": "log"
+          },
+          {
+            "control": "desviados",
+            "valor": 272593,
+            "accion": "log"
+          },
+          {
+            "control": "arrdelay_nulo",
+            "valor": 2502926,
+            "accion": "log"
+          }
+        ]
+      }
+    },
+    {
+      "step": "analysis",
+      "status": "ok",
+      "seconds": 25.0,
+      "result": {
+        "consulta_1": {
+          "path": "hdfs://namenode:9000/airline/results/spark/consulta_1",
+          "rows": 295
+        },
+        "consulta_2": {
+          "path": "hdfs://namenode:9000/airline/results/spark/consulta_2",
+          "rows": 851
+        },
+        "consulta_3": {
+          "path": "hdfs://namenode:9000/airline/results/spark/consulta_3",
+          "rows": 2819
+        }
+      }
+    },
+    {
+      "step": "ml",
+      "status": "ok",
+      "seconds": 16.5,
+      "result": {
+        "metrics": {
+          "train_year": 2006,
+          "test_year": 2007,
+          "sample_fraction": 0.02,
+          "train_rows": 140250,
+          "test_rows": 145700,
+          "auc_roc": 0.6322121576814741,
+          "accuracy": 0.7620384351407,
+          "test_positive_rate": 0.23729581331503088,
+          "baseline_trivial_accuracy": 0.7627041866849691,
+          "baseline_trivial_auc_roc": 0.5
+        },
+        "path": "hdfs://namenode:9000/airline/results/spark/ml_baseline"
+      }
+    }
+  ]
+}

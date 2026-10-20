@@ -53,12 +53,27 @@ def run(spark, cfg):
         report.write.mode("overwrite").json(target)
     finally:
         report.unpersist()
-    return {
-        "path": target,
-        "years": len(yearly),
-        "rows": sum(row["filas"] for row in yearly),
-        "controls": [
-            "year", "estado", "ArrDelay", "Month", "DayOfWeek", "Distance",
-            "aptitud_por_salida",
-        ],
-    }
+    totals = {k: int(sum(row[k] for row in yearly)) for k in yearly[0].asDict() if k != "Year"}
+    n = totals["filas"]
+    expected_years = int(cfg["data"]["last_year"]) - int(cfg["data"]["first_year"]) + 1
+    # Acción definida para cada control: stop (detiene el pipeline), warn (aviso) o log (registro)
+    unexpected = ["year_invalido", "estado_nulo", "estado_fuera_de_rango",
+                  "month_invalido", "dayofweek_invalido", "distance_invalida"]
+    expected_exclusions = ["cancelados", "desviados", "arrdelay_nulo"]
+    stop_pct = float(cfg.get("quality_stop_pct", 5.0))
+    actions = []
+    if n == 0 or len(yearly) != expected_years:
+        actions.append({"control": "años_y_filas", "valor": [len(yearly), n], "accion": "stop"})
+    for c in unexpected:
+        pct = 100.0 * totals[c] / n if n else 0.0
+        accion = "stop" if pct > stop_pct else ("warn" if totals[c] > 0 else "ok")
+        actions.append({"control": c, "valor": totals[c], "pct": round(pct, 4), "accion": accion})
+    for c in expected_exclusions:
+        actions.append({"control": c, "valor": totals[c], "accion": "log"})
+    for a in actions:
+        if a["accion"] == "warn":
+            print(f"  QUALITY WARN {a['control']}: {a['valor']} filas ({a['pct']} %)", flush=True)
+    stops = [a for a in actions if a["accion"] == "stop"]
+    if stops:
+        raise RuntimeError(f"QUALITY STOP: {stops}")   # run_pipeline marca el paso como fallido y se detiene
+    return {"path": target, "years": len(yearly), "totals": totals, "actions": actions}

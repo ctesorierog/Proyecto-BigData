@@ -1,0 +1,99 @@
+{
+  "run1": "run_20261020_203058.json",
+  "run2": "run_20261020_204845.json",
+  "all_equal": false,
+  "comparison": [
+    {
+      "metric": "ingest_files",
+      "run1": 24,
+      "run2": 24,
+      "same": true
+    },
+    {
+      "metric": "ingest_bytes",
+      "run1": 11574141144,
+      "run2": 11574141144,
+      "same": true
+    },
+    {
+      "metric": "ingest_uploaded",
+      "run1": 0,
+      "run2": 0,
+      "same": true
+    },
+    {
+      "metric": "curated_rows",
+      "run1": 118914458,
+      "run2": 118914458,
+      "same": true
+    },
+    {
+      "metric": "valid_flights",
+      "run1": 116411532,
+      "run2": 116411532,
+      "same": true
+    },
+    {
+      "metric": "apto_modelo",
+      "run1": 116212110,
+      "run2": 116212110,
+      "same": true
+    },
+    {
+      "metric": "quality_rows",
+      "run1": 118914458,
+      "run2": 118914458,
+      "same": true
+    },
+    {
+      "metric": "quality_distance_invalida",
+      "run1": 202007,
+      "run2": 202007,
+      "same": true
+    },
+    {
+      "metric": "q1_rows",
+      "run1": 295,
+      "run2": 295,
+      "same": true
+    },
+    {
+      "metric": "q2_rows",
+      "run1": 851,
+      "run2": 851,
+      "same": true
+    },
+    {
+      "metric": "q3_rows",
+      "run1": 2819,
+      "run2": 2819,
+      "same": true
+    },
+    {
+      "metric": "ml_train_rows",
+      "run1": 140250,
+      "run2": 140250,
+      "same": true
+    },
+    {
+      "metric": "ml_test_rows",
+      "run1": 145700,
+      "run2": 145700,
+      "same": true
+    },
+    {
+      "metric": "ml_auc_roc",
+      "run1": 0.632212,
+      "run2": 0.632214,
+      "same": false
+    },
+    {
+      "metric": "ml_accuracy",
+      "run1": 0.762038,
+      "run2": 0.762038,
+      "same": true
+    }
+  ],
+  "all_counts_equal": true,
+  "note": "Todos los conteos coinciden. El AUC difiere en 2e-6 por el orden no determinista de las sumas en coma flotante de Spark; no es un cambio en los datos."
+}

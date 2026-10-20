@@ -23,5 +23,5 @@ def run(spark, cfg):
     for name, result in outputs.items():
         target = f"{results_path}/spark/{name}"
         result.write.mode("overwrite").parquet(target)
-        paths[name] = target
+        paths[name] = {"path": target, "rows": spark.read.parquet(target).count()}
     return paths

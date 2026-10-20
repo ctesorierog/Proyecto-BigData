@@ -112,6 +112,10 @@ def run(spark, cfg):
             "auc_roc": float(auc),
             "accuracy": float(summary["accuracy"]),
             "test_positive_rate": float(summary["proporcion_retrasados"]),
+            # Línea base trivial: predecir siempre la clase mayoritaria
+            "baseline_trivial_accuracy": float(max(summary["proporcion_retrasados"],
+                                                   1 - summary["proporcion_retrasados"])),
+            "baseline_trivial_auc_roc": 0.5,
         }
         target = f"{results}/spark/ml_baseline"
         spark.createDataFrame([metrics]).coalesce(1).write.mode("overwrite").json(target)

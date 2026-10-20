@@ -19,4 +19,15 @@ def run(spark, cfg):
     if partition_column != "Year":
         raise ValueError(f"La partición acordada es Year; recibí {partition_column!r}")
     flights.write.mode("overwrite").partitionBy(partition_column).parquet(curated_path)
-    return {"curated": curated_path, "years": len(years), "partition_column": partition_column}
+
+    # Conteos desde el Parquet recién escrito (lectura columnar, barata): filas antes y
+    # después de cada regla de aptitud. No se descartan filas, solo se marcan.
+    from pyspark.sql import functions as F
+    curated = spark.read.parquet(curated_path)
+    flags = ["vuelo_valido", "apto_consulta_1", "apto_consulta_2", "apto_consulta_3", "apto_modelo"]
+    counts = curated.agg(F.count("*").alias("filas"),
+                         *[F.sum(F.col(c).cast("long")).alias(c) for c in flags]).first().asDict()
+    motivos = {r["motivo_vuelo"] or "valido": r["count"]
+               for r in curated.groupBy("motivo_vuelo").count().collect()}
+    return {"curated": curated_path, "years": len(years), "partition_column": partition_column,
+            "counts": counts, "motivo_vuelo": motivos}
