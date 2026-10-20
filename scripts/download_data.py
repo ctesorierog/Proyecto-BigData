@@ -17,6 +17,8 @@ import urllib.request
 from pathlib import Path
 
 API = "https://dataverse.harvard.edu/api"
+# Dataverse rejects (403) requests with Python's default user agent
+HEADERS = {"User-Agent": "Mozilla/5.0 (Proyecto-BigData course project; airline dataset download)"}
 LOOKUPS = {"airports.csv", "carriers.csv"}
 
 
@@ -34,7 +36,7 @@ def local_name(remote_name):
 def list_remote_files(doi):
     """Ask Dataverse which files the dataset has: (name, file id, is_tabular)."""
     url = f"{API}/datasets/:persistentId/?persistentId={doi}"
-    with urllib.request.urlopen(url, timeout=60) as resp:
+    with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as resp:
         meta = json.load(resp)
     for f in meta["data"]["latestVersion"]["files"]:
         df = f["dataFile"]
@@ -45,7 +47,8 @@ def list_remote_files(doi):
 def fetch(file_id, tabular, dest):
     url = f"{API}/access/datafile/{file_id}" + ("?format=original" if tabular else "")
     part = dest.with_name(dest.name + ".part")
-    with urllib.request.urlopen(url, timeout=600) as resp, open(part, "wb") as out:
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=600) as resp, open(part, "wb") as out:
         shutil.copyfileobj(resp, out, 1 << 20)
     part.rename(dest)
 
