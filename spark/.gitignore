@@ -1,0 +1,4 @@
+# Experimentos locales de Felipe; el clúster compartido usa docker-compose.yml.
+compose.local.yml
+ENTORNO_PARA_CARLOS.md
+output/pdf/
