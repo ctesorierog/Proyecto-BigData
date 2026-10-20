@@ -1,0 +1,142 @@
+== Physical Plan ==
+AdaptiveSparkPlan (24)
++- == Final Plan ==
+   ResultQueryStage (15)
+   +- * Sort (14)
+      +- AQEShuffleRead (13), coalesced
+         +- ShuffleQueryStage (12), Statistics(sizeInBytes=960.0 B, rowCount=20)
+            +- Exchange (11)
+               +- * Filter (10)
+                  +- * HashAggregate (9)
+                     +- AQEShuffleRead (8), coalesced
+                        +- ShuffleQueryStage (7), Statistics(sizeInBytes=5.5 KiB, rowCount=100)
+                           +- Exchange (6)
+                              +- * HashAggregate (5)
+                                 +- * Project (4)
+                                    +- * Filter (3)
+                                       +- * ColumnarToRow (2)
+                                          +- Scan parquet  (1)
++- == Initial Plan ==
+   Sort (23)
+   +- Exchange (22)
+      +- Filter (21)
+         +- HashAggregate (20)
+            +- Exchange (19)
+               +- HashAggregate (18)
+                  +- Project (17)
+                     +- Filter (16)
+                        +- Scan parquet  (1)
+
+
+(1) Scan parquet 
+Output [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+Batched: true
+Location: InMemoryFileIndex [hdfs://namenode:9000/airline/curated/flights]
+PartitionFilters: [isnotnull(Year#71), (Year#71 = 2007)]
+PushedFilters: [IsNotNull(apto_consulta_1), EqualTo(apto_consulta_1,true)]
+ReadSchema: struct<UniqueCarrier:string,ArrDelay:int,apto_consulta_1:boolean>
+
+(2) ColumnarToRow [codegen id : 1]
+Input [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+
+(3) Filter [codegen id : 1]
+Input [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+Condition : (isnotnull(apto_consulta_1#64) AND apto_consulta_1#64)
+
+(4) Project [codegen id : 1]
+Output [3]: [UniqueCarrier#53, ArrDelay#57, Year#71]
+Input [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+
+(5) HashAggregate [codegen id : 1]
+Input [3]: [UniqueCarrier#53, ArrDelay#57, Year#71]
+Keys [2]: [Year#71, UniqueCarrier#53]
+Functions [2]: [partial_count(1), partial_avg(ArrDelay#57)]
+Aggregate Attributes [3]: [count#144L, sum#145, count#146L]
+Results [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+
+(6) Exchange
+Input [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Arguments: hashpartitioning(Year#71, UniqueCarrier#53, 200), ENSURE_REQUIREMENTS, [plan_id=171]
+
+(7) ShuffleQueryStage
+Output [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Arguments: 0
+
+(8) AQEShuffleRead
+Input [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Arguments: coalesced
+
+(9) HashAggregate [codegen id : 2]
+Input [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Keys [2]: [Year#71, UniqueCarrier#53]
+Functions [2]: [count(1), avg(ArrDelay#57)]
+Aggregate Attributes [2]: [count(1)#123L, avg(ArrDelay#57)#124]
+Results [4]: [Year#71, UniqueCarrier#53, count(1)#123L AS n_vuelos#99L, avg(ArrDelay#57)#124 AS retraso_medio#100]
+
+(10) Filter [codegen id : 2]
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Condition : (n_vuelos#99L >= 100)
+
+(11) Exchange
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: rangepartitioning(Year#71 ASC NULLS FIRST, UniqueCarrier#53 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=211]
+
+(12) ShuffleQueryStage
+Output [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: 1
+
+(13) AQEShuffleRead
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: coalesced
+
+(14) Sort [codegen id : 3]
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: [Year#71 ASC NULLS FIRST, UniqueCarrier#53 ASC NULLS FIRST], true, 0
+
+(15) ResultQueryStage
+Output [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: 3
+
+(16) Filter
+Input [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+Condition : (isnotnull(apto_consulta_1#64) AND apto_consulta_1#64)
+
+(17) Project
+Output [3]: [UniqueCarrier#53, ArrDelay#57, Year#71]
+Input [4]: [UniqueCarrier#53, ArrDelay#57, apto_consulta_1#64, Year#71]
+
+(18) HashAggregate
+Input [3]: [UniqueCarrier#53, ArrDelay#57, Year#71]
+Keys [2]: [Year#71, UniqueCarrier#53]
+Functions [2]: [partial_count(1), partial_avg(ArrDelay#57)]
+Aggregate Attributes [3]: [count#144L, sum#145, count#146L]
+Results [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+
+(19) Exchange
+Input [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Arguments: hashpartitioning(Year#71, UniqueCarrier#53, 200), ENSURE_REQUIREMENTS, [plan_id=139]
+
+(20) HashAggregate
+Input [5]: [Year#71, UniqueCarrier#53, count#147L, sum#148, count#149L]
+Keys [2]: [Year#71, UniqueCarrier#53]
+Functions [2]: [count(1), avg(ArrDelay#57)]
+Aggregate Attributes [2]: [count(1)#123L, avg(ArrDelay#57)#124]
+Results [4]: [Year#71, UniqueCarrier#53, count(1)#123L AS n_vuelos#99L, avg(ArrDelay#57)#124 AS retraso_medio#100]
+
+(21) Filter
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Condition : (n_vuelos#99L >= 100)
+
+(22) Exchange
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: rangepartitioning(Year#71 ASC NULLS FIRST, UniqueCarrier#53 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=143]
+
+(23) Sort
+Input [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: [Year#71 ASC NULLS FIRST, UniqueCarrier#53 ASC NULLS FIRST], true, 0
+
+(24) AdaptiveSparkPlan
+Output [4]: [Year#71, UniqueCarrier#53, n_vuelos#99L, retraso_medio#100]
+Arguments: isFinalPlan=true
+
+

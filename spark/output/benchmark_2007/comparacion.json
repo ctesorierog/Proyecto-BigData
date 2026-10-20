@@ -1,0 +1,19 @@
+{
+  "year": 2007,
+  "query": "consulta_1",
+  "csv_seconds": [
+    8.804350628999941,
+    0.0776282289999699
+  ],
+  "parquet_seconds": [
+    1.884720485999992,
+    0.06496158200002355
+  ],
+  "csv_median_seconds": 4.440989428999956,
+  "parquet_median_seconds": 0.9748410340000078,
+  "csv_logical_bytes": 702878193,
+  "parquet_logical_bytes": 41916603,
+  "csv_physical_bytes": 1405756386,
+  "parquet_physical_bytes": 83833206,
+  "results_equal": true
+}

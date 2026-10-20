@@ -1,0 +1,136 @@
+== Physical Plan ==
+AdaptiveSparkPlan (23)
++- == Final Plan ==
+   ResultQueryStage (14)
+   +- * Sort (13)
+      +- AQEShuffleRead (12), coalesced
+         +- ShuffleQueryStage (11), Statistics(sizeInBytes=960.0 B, rowCount=20)
+            +- Exchange (10)
+               +- * Filter (9)
+                  +- * HashAggregate (8)
+                     +- AQEShuffleRead (7), coalesced
+                        +- ShuffleQueryStage (6), Statistics(sizeInBytes=6.3 KiB, rowCount=115)
+                           +- Exchange (5)
+                              +- * HashAggregate (4)
+                                 +- * Project (3)
+                                    +- * Filter (2)
+                                       +- Scan csv  (1)
++- == Initial Plan ==
+   Sort (22)
+   +- Exchange (21)
+      +- Filter (20)
+         +- HashAggregate (19)
+            +- Exchange (18)
+               +- HashAggregate (17)
+                  +- Project (16)
+                     +- Filter (15)
+                        +- Scan csv  (1)
+
+
+(1) Scan csv 
+Output [5]: [Year#9, UniqueCarrier#17, ArrDelay#23, Cancelled#30, Diverted#32]
+Batched: false
+Location: InMemoryFileIndex [hdfs://namenode:9000/airline/raw/flights/2007.csv]
+ReadSchema: struct<Year:int,UniqueCarrier:string,ArrDelay:int,Cancelled:int,Diverted:int>
+
+(2) Filter [codegen id : 1]
+Input [5]: [Year#9, UniqueCarrier#17, ArrDelay#23, Cancelled#30, Diverted#32]
+Condition : CASE WHEN CASE WHEN (isnull(Cancelled#30) OR isnull(Diverted#32)) THEN true WHEN (NOT Cancelled#30 IN (0,1) OR NOT Diverted#32 IN (0,1)) THEN true WHEN (Cancelled#30 = 1) THEN true WHEN (Diverted#32 = 1) THEN true WHEN isnull(ArrDelay#23) THEN true ELSE false END THEN CASE WHEN (isnull(Cancelled#30) OR isnull(Diverted#32)) THEN false WHEN (NOT Cancelled#30 IN (0,1) OR NOT Diverted#32 IN (0,1)) THEN false WHEN (Cancelled#30 = 1) THEN false WHEN (Diverted#32 = 1) THEN false WHEN isnull(ArrDelay#23) THEN false ELSE true END WHEN (isnull(Year#9) OR NOT (Year#9 = 2007)) THEN false WHEN (isnull(UniqueCarrier#17) OR (trim(UniqueCarrier#17, None) = )) THEN false ELSE true END
+
+(3) Project [codegen id : 1]
+Output [3]: [Year#9, UniqueCarrier#17, ArrDelay#23]
+Input [5]: [Year#9, UniqueCarrier#17, ArrDelay#23, Cancelled#30, Diverted#32]
+
+(4) HashAggregate [codegen id : 1]
+Input [3]: [Year#9, UniqueCarrier#17, ArrDelay#23]
+Keys [2]: [Year#9, UniqueCarrier#17]
+Functions [2]: [partial_count(1), partial_avg(ArrDelay#23)]
+Aggregate Attributes [3]: [count#125L, sum#126, count#127L]
+Results [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+
+(5) Exchange
+Input [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Arguments: hashpartitioning(Year#9, UniqueCarrier#17, 200), ENSURE_REQUIREMENTS, [plan_id=55]
+
+(6) ShuffleQueryStage
+Output [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Arguments: 0
+
+(7) AQEShuffleRead
+Input [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Arguments: coalesced
+
+(8) HashAggregate [codegen id : 2]
+Input [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Keys [2]: [Year#9, UniqueCarrier#17]
+Functions [2]: [count(1), avg(ArrDelay#23)]
+Aggregate Attributes [2]: [count(1)#97L, avg(ArrDelay#23)#98]
+Results [4]: [Year#9, UniqueCarrier#17, count(1)#97L AS n_vuelos#73L, avg(ArrDelay#23)#98 AS retraso_medio#74]
+
+(9) Filter [codegen id : 2]
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Condition : (n_vuelos#73L >= 100)
+
+(10) Exchange
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: rangepartitioning(Year#9 ASC NULLS FIRST, UniqueCarrier#17 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=94]
+
+(11) ShuffleQueryStage
+Output [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: 1
+
+(12) AQEShuffleRead
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: coalesced
+
+(13) Sort [codegen id : 3]
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: [Year#9 ASC NULLS FIRST, UniqueCarrier#17 ASC NULLS FIRST], true, 0
+
+(14) ResultQueryStage
+Output [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: 3
+
+(15) Filter
+Input [5]: [Year#9, UniqueCarrier#17, ArrDelay#23, Cancelled#30, Diverted#32]
+Condition : CASE WHEN CASE WHEN (isnull(Cancelled#30) OR isnull(Diverted#32)) THEN true WHEN (NOT Cancelled#30 IN (0,1) OR NOT Diverted#32 IN (0,1)) THEN true WHEN (Cancelled#30 = 1) THEN true WHEN (Diverted#32 = 1) THEN true WHEN isnull(ArrDelay#23) THEN true ELSE false END THEN CASE WHEN (isnull(Cancelled#30) OR isnull(Diverted#32)) THEN false WHEN (NOT Cancelled#30 IN (0,1) OR NOT Diverted#32 IN (0,1)) THEN false WHEN (Cancelled#30 = 1) THEN false WHEN (Diverted#32 = 1) THEN false WHEN isnull(ArrDelay#23) THEN false ELSE true END WHEN (isnull(Year#9) OR NOT (Year#9 = 2007)) THEN false WHEN (isnull(UniqueCarrier#17) OR (trim(UniqueCarrier#17, None) = )) THEN false ELSE true END
+
+(16) Project
+Output [3]: [Year#9, UniqueCarrier#17, ArrDelay#23]
+Input [5]: [Year#9, UniqueCarrier#17, ArrDelay#23, Cancelled#30, Diverted#32]
+
+(17) HashAggregate
+Input [3]: [Year#9, UniqueCarrier#17, ArrDelay#23]
+Keys [2]: [Year#9, UniqueCarrier#17]
+Functions [2]: [partial_count(1), partial_avg(ArrDelay#23)]
+Aggregate Attributes [3]: [count#125L, sum#126, count#127L]
+Results [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+
+(18) Exchange
+Input [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Arguments: hashpartitioning(Year#9, UniqueCarrier#17, 200), ENSURE_REQUIREMENTS, [plan_id=29]
+
+(19) HashAggregate
+Input [5]: [Year#9, UniqueCarrier#17, count#128L, sum#129, count#130L]
+Keys [2]: [Year#9, UniqueCarrier#17]
+Functions [2]: [count(1), avg(ArrDelay#23)]
+Aggregate Attributes [2]: [count(1)#97L, avg(ArrDelay#23)#98]
+Results [4]: [Year#9, UniqueCarrier#17, count(1)#97L AS n_vuelos#73L, avg(ArrDelay#23)#98 AS retraso_medio#74]
+
+(20) Filter
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Condition : (n_vuelos#73L >= 100)
+
+(21) Exchange
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: rangepartitioning(Year#9 ASC NULLS FIRST, UniqueCarrier#17 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=33]
+
+(22) Sort
+Input [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: [Year#9 ASC NULLS FIRST, UniqueCarrier#17 ASC NULLS FIRST], true, 0
+
+(23) AdaptiveSparkPlan
+Output [4]: [Year#9, UniqueCarrier#17, n_vuelos#73L, retraso_medio#74]
+Arguments: isFinalPlan=true
+
+
