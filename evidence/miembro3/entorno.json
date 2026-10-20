@@ -1,0 +1,32 @@
+{
+  "fecha": "2026-10-20 10:45",
+  "cores_visibles": 8,
+  "RAM_visible_GB (≈ RAM asignada a Docker)": 15.2,
+  "spark": "4.2.0",
+  "python": "3.13.15",
+  "cores_del_cluster_spark": 4,
+  "anios_dataset": [
+    1987,
+    1988,
+    1989,
+    1990,
+    1991,
+    1992,
+    1993,
+    1994,
+    1995,
+    1996,
+    1997,
+    1998,
+    1999,
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    2006,
+    2007
+  ],
+  "portatil": "<<RELLENAR: modelo, CPU, RAM total, SSD>>"
+}

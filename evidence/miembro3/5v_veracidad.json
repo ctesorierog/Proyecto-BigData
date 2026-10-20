@@ -1,0 +1,18 @@
+{
+  "pct_cancelados": 1.595,
+  "pct_desviados": 0.23,
+  "pct_operados_sin_ArrDelay": 0.0,
+  "pct_DepTime_imposible": 0.002,
+  "pct_CRSDepTime_imposible": 0.0,
+  "pct_ArrDelay_extremo": 0.0,
+  "pct_Distance_invalida": 0.149,
+  "pct_TailNum_null": 36.347,
+  "pct_target_ArrDelay_mayor_15": 18.657,
+  "ArrDelay_min": -1437,
+  "ArrDelay_max": 2137,
+  "filas_utiles": 55624756,
+  "filas_descartables": 1034394,
+  "pct_descartables": 1.83,
+  "claves_duplicadas": 638,
+  "filas_sobrantes": 642
+}

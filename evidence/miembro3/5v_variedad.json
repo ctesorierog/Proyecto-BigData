@@ -1,0 +1,15 @@
+{
+  "aeropuertos_en_airports_csv": 3376,
+  "aeropuertos_distintos_en_vuelos": 340,
+  "codigos_sin_match_en_airports": [
+    "CBM"
+  ],
+  "pct_vuelos_con_Origin_en_airports": 100.0,
+  "anios_con_CarrierDelay": [
+    2003,
+    2004,
+    2005,
+    2006,
+    2007
+  ]
+}
