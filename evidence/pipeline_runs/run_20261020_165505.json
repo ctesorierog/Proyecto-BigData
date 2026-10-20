@@ -1,0 +1,25 @@
+{
+  "started": "20261020_165505",
+  "steps": [
+    {
+      "step": "download",
+      "status": "ok",
+      "seconds": 0.0,
+      "result": {
+        "downloaded": [],
+        "skipped": 24
+      }
+    },
+    {
+      "step": "ingest",
+      "status": "ok",
+      "seconds": 10.1,
+      "result": {
+        "files": 24,
+        "bytes": 11574141144,
+        "uploaded": [],
+        "skipped": 24
+      }
+    }
+  ]
+}

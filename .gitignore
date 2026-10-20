@@ -1,5 +1,7 @@
-# Dataset: downloaded by the script, never committed
-data/
+# Dataset: downloaded by the script, never committed.
+# The folder itself is kept (data/.gitkeep) so Docker does not create it as root on Linux/Mac.
+data/*
+!data/.gitkeep
 *.bz2
 
 # Local settings
