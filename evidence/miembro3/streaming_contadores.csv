@@ -1,11 +1,11 @@
-,streaming_full,streaming_sample_comb
-segundos,80.0,
-Map input records,1434014.0,
-Map output records,1424205.0,
-Combine input records,1424205.0,
-Combine output records,12.0,
-Reduce input records,531.0,
-Reduce shuffle bytes,9557.0,
-Spilled Records,12.0,
-Reduce output records,274.0,
-HDFS: Number of bytes read,553648128.0,
+,streaming_full,streaming_sample_comb,streaming_sample_nocomb
+segundos,175.3,7.0,6.6
+Map input records,118914480.0,1311827.0,1311827.0
+Map output records,116411532.0,1288326.0,1288326.0
+Combine input records,116411532.0,1288326.0,0.0
+Combine output records,1227.0,14.0,0.0
+Reduce input records,1227.0,14.0,1288326.0
+Reduce shuffle bytes,36389.0,425.0,21664886.0
+Spilled Records,2454.0,28.0,2576652.0
+Reduce output records,295.0,14.0,14.0
+HDFS: Number of bytes read,600583560960.0,254325884.0,254325884.0

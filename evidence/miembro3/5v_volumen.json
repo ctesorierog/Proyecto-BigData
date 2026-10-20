@@ -1,8 +1,8 @@
 {
-  "anios": 21,
-  "raw_GB": 5.14,
-  "raw_GB_con_replicas": 10.27,
-  "bloques_HDFS": 61,
-  "filas": 56659150,
-  "MB_medios_por_anio": 250
+  "anios": 22,
+  "raw_GB": 10.78,
+  "raw_GB_con_replicas": 21.56,
+  "bloques_HDFS": 95,
+  "filas": 118914458,
+  "MB_medios_por_anio": 502
 }

@@ -1,0 +1,12 @@
+{
+  "anio_prueba": 1987,
+  "rdd_sample_s": [
+    2.6,
+    1.6,
+    1.5
+  ],
+  "rdd_full_s": [
+    96.6
+  ],
+  "cores_spark": 4
+}

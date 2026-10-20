@@ -20,155 +20,185 @@
     2004,
     2005,
     2006,
-    2007
+    2007,
+    2008
   ],
   "ficheros": [
     {
       "fichero": "1987.csv",
-      "bytes": 76831294,
+      "bytes": 127162942,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1987.0
+      "Year": 1987.0,
+      "bytes_local": 127162942
     },
     {
       "fichero": "1988.csv",
-      "bytes": 272629760,
+      "bytes": 501039472,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1988.0
+      "Year": 1988.0,
+      "bytes_local": 501039472
     },
     {
       "fichero": "1989.csv",
-      "bytes": 272629760,
+      "bytes": 486518821,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1989.0
+      "Year": 1989.0,
+      "bytes_local": 486518821
     },
     {
       "fichero": "1990.csv",
-      "bytes": 271581184,
+      "bytes": 509194687,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1990.0
+      "Year": 1990.0,
+      "bytes_local": 509194687
     },
     {
       "fichero": "1991.csv",
-      "bytes": 272629760,
+      "bytes": 491210093,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1991.0
+      "Year": 1991.0,
+      "bytes_local": 491210093
     },
     {
       "fichero": "1992.csv",
-      "bytes": 272629760,
+      "bytes": 492313731,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1992.0
+      "Year": 1992.0,
+      "bytes_local": 492313731
     },
     {
       "fichero": "1993.csv",
-      "bytes": 271581184,
+      "bytes": 490753652,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1993.0
+      "Year": 1993.0,
+      "bytes_local": 490753652
     },
     {
       "fichero": "1994.csv",
-      "bytes": 271581184,
+      "bytes": 501558665,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1994.0
+      "Year": 1994.0,
+      "bytes_local": 501558665
     },
     {
       "fichero": "1995.csv",
-      "bytes": 272629760,
+      "bytes": 530751568,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1995.0
+      "Year": 1995.0,
+      "bytes_local": 530751568
     },
     {
       "fichero": "1996.csv",
-      "bytes": 270532608,
+      "bytes": 533922363,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1996.0
+      "Year": 1996.0,
+      "bytes_local": 533922363
     },
     {
       "fichero": "1997.csv",
-      "bytes": 270532608,
+      "bytes": 540347861,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1997.0
+      "Year": 1997.0,
+      "bytes_local": 540347861
     },
     {
       "fichero": "1998.csv",
-      "bytes": 272629760,
+      "bytes": 538432875,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1998.0
+      "Year": 1998.0,
+      "bytes_local": 538432875
     },
     {
       "fichero": "1999.csv",
-      "bytes": 271581184,
+      "bytes": 552926022,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 1999.0
+      "Year": 1999.0,
+      "bytes_local": 552926022
     },
     {
       "fichero": "2000.csv",
-      "bytes": 271581184,
+      "bytes": 570151613,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2000.0
+      "Year": 2000.0,
+      "bytes_local": 570151613
     },
     {
       "fichero": "2001.csv",
-      "bytes": 272629760,
+      "bytes": 600411462,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2001.0
+      "Year": 2001.0,
+      "bytes_local": 600411462
     },
     {
       "fichero": "2002.csv",
-      "bytes": 271581184,
+      "bytes": 530507013,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2002.0
+      "Year": 2002.0,
+      "bytes_local": 530507013
     },
     {
       "fichero": "2003.csv",
-      "bytes": 271581184,
+      "bytes": 626745242,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2003.0
+      "Year": 2003.0,
+      "bytes_local": 626745242
     },
     {
       "fichero": "2004.csv",
-      "bytes": 270532608,
+      "bytes": 669879113,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2004.0
+      "Year": 2004.0,
+      "bytes_local": 669879113
     },
     {
       "fichero": "2005.csv",
-      "bytes": 271581184,
+      "bytes": 671027265,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2005.0
+      "Year": 2005.0,
+      "bytes_local": 671027265
     },
     {
       "fichero": "2006.csv",
-      "bytes": 271581184,
+      "bytes": 672068096,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2006.0
+      "Year": 2006.0,
+      "bytes_local": 672068096
     },
     {
       "fichero": "2007.csv",
-      "bytes": 272629760,
+      "bytes": 702878193,
       "replicacion": 2,
       "bloque_MB": 128,
-      "Year": 2007.0
+      "Year": 2007.0,
+      "bytes_local": 702878193
+    },
+    {
+      "fichero": "2008.csv",
+      "bytes": 234052199,
+      "replicacion": 2,
+      "bloque_MB": 128,
+      "Year": 2008.0,
+      "bytes_local": 234052199
     }
   ]
 }

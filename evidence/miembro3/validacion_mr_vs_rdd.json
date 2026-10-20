@@ -1,0 +1,14 @@
+{
+  "anio_1987": {
+    "claves": 14,
+    "claves_solo_en_uno": 0,
+    "n_vuelos_distintos": 0,
+    "max_diferencia_media": 4.442916093339022e-05
+  },
+  "todos_los_anios": {
+    "claves": 295,
+    "claves_solo_en_uno": 0,
+    "n_vuelos_distintos": 0,
+    "max_diferencia_media": 4.991327156567138e-05
+  }
+}

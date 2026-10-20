@@ -1,6 +1,6 @@
 {
   "aeropuertos_en_airports_csv": 3376,
-  "aeropuertos_distintos_en_vuelos": 340,
+  "aeropuertos_distintos_en_vuelos": 351,
   "codigos_sin_match_en_airports": [
     "CBM"
   ],
@@ -10,6 +10,7 @@
     2004,
     2005,
     2006,
-    2007
+    2007,
+    2008
   ]
 }

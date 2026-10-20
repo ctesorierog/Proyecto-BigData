@@ -1,7 +1,7 @@
 {
-  "fecha": "2026-10-20 10:45",
-  "cores_visibles": 8,
-  "RAM_visible_GB (≈ RAM asignada a Docker)": 15.2,
+  "fecha": "2026-10-20 17:13",
+  "cores_visibles": 16,
+  "RAM_visible_GB (≈ RAM asignada a Docker)": 7.6,
   "spark": "4.2.0",
   "python": "3.13.15",
   "cores_del_cluster_spark": 4,
@@ -26,7 +26,9 @@
     2004,
     2005,
     2006,
-    2007
+    2007,
+    2008
   ],
-  "portatil": "<<RELLENAR: modelo, CPU, RAM total, SSD>>"
+  "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+  "maquina": "portátil de referencia del equipo (Docker Desktop); todas las comparativas de tiempos se miden aquí"
 }
