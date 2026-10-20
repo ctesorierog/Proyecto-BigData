@@ -64,6 +64,7 @@ services:
     restart: unless-stopped
     command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker",
               "--cores", "2", "--memory", "2g", "--webui-port", "8081",
+              "--work-dir", "/tmp/spark-work",   # default $SPARK_HOME/work is not writable by jovyan
               "spark://spark-master:7077"]
     environment:
       - HADOOP_USER_NAME=root
