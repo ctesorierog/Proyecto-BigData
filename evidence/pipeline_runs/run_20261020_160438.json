@@ -1,0 +1,48 @@
+{
+  "started": "20261020_160438",
+  "steps": [
+    {
+      "step": "download",
+      "status": "ok",
+      "seconds": 0.0,
+      "result": {
+        "downloaded": [],
+        "skipped": 24
+      }
+    },
+    {
+      "step": "ingest",
+      "status": "ok",
+      "seconds": 8.7,
+      "result": {
+        "uploaded": [],
+        "skipped": 24,
+        "files": 24
+      }
+    },
+    {
+      "step": "etl",
+      "status": "skipped",
+      "seconds": 0.0,
+      "result": "skipped"
+    },
+    {
+      "step": "quality",
+      "status": "skipped",
+      "seconds": 0.0,
+      "result": "skipped"
+    },
+    {
+      "step": "analysis",
+      "status": "skipped",
+      "seconds": 0.0,
+      "result": "skipped"
+    },
+    {
+      "step": "ml",
+      "status": "skipped",
+      "seconds": 0.0,
+      "result": "skipped"
+    }
+  ]
+}

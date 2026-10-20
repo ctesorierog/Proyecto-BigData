@@ -108,6 +108,7 @@ services:
         --driver-memory 1g
         --executor-memory 1g
         --executor-cores 2
+        --conf spark.hadoop.dfs.replication=2
         pyspark-shell
     volumes:
       - ./:/home/jovyan/work
