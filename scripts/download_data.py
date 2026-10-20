@@ -16,16 +16,14 @@ import shutil
 import urllib.request
 from pathlib import Path
 
-API = "https://dataverse.harvard.edu/api"
 # Dataverse rejects (403) requests with Python's default user agent
 HEADERS = {"User-Agent": "Mozilla/5.0 (Proyecto-BigData course project; airline dataset download)"}
-LOOKUPS = {"airports.csv", "carriers.csv"}
 
 
 def wanted_files(cfg):
     """Names as published on Dataverse: one .csv.bz2 per year + the lookup tables."""
     years = range(cfg["data"]["first_year"], cfg["data"]["last_year"] + 1)
-    return {f"{y}.csv.bz2" for y in years} | LOOKUPS
+    return {f"{y}.csv.bz2" for y in years} | set(cfg["data"]["lookup_files"])
 
 
 def local_name(remote_name):
@@ -33,9 +31,9 @@ def local_name(remote_name):
     return remote_name[:-4] if remote_name.endswith(".bz2") else remote_name
 
 
-def list_remote_files(doi):
+def list_remote_files(api, doi):
     """Ask Dataverse which files the dataset has: (name, file id, is_tabular)."""
-    url = f"{API}/datasets/:persistentId/?persistentId={doi}"
+    url = f"{api}/datasets/:persistentId/?persistentId={doi}"
     with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as resp:
         meta = json.load(resp)
     for f in meta["data"]["latestVersion"]["files"]:
@@ -44,8 +42,8 @@ def list_remote_files(doi):
         yield df.get("originalFileName", df["filename"]), df["id"], "originalFileFormat" in df
 
 
-def fetch(file_id, tabular, dest):
-    url = f"{API}/access/datafile/{file_id}" + ("?format=original" if tabular else "")
+def fetch(api, file_id, tabular, dest):
+    url = f"{api}/access/datafile/{file_id}" + ("?format=original" if tabular else "")
     part = dest.with_name(dest.name + ".part")
     req = urllib.request.Request(url, headers=HEADERS)
     with urllib.request.urlopen(req, timeout=600) as resp, open(part, "wb") as out:
@@ -73,18 +71,19 @@ def run(cfg, dest, only=None):
         return {"downloaded": [], "skipped": len(wanted)}
 
     downloaded = []
-    for name, file_id, tabular in list_remote_files(cfg["data"]["source_doi"]):
+    api = cfg["data"]["source_api"]
+    for name, file_id, tabular in list_remote_files(api, cfg["data"]["source_doi"]):
         if name not in missing:
             continue
         final = dest / local_name(name)
         print(f"  downloading {name} ...", flush=True)
         if name.endswith(".bz2"):
             tmp = dest / name
-            fetch(file_id, tabular, tmp)
+            fetch(api, file_id, tabular, tmp)
             decompress(tmp, final)
             tmp.unlink()
         else:
-            fetch(file_id, tabular, final)
+            fetch(api, file_id, tabular, final)
         downloaded.append(final.name)
         missing.discard(name)
 

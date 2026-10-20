@@ -21,6 +21,8 @@ data:
   first_year: 1987
   last_year: 2008
   source_doi: doi:10.7910/DVN/HG7NV7     # Harvard Dataverse
+  source_api: https://dataverse.harvard.edu/api
+  lookup_files: [airports.csv, carriers.csv]
 
 # Shared rules, so all workstreams compute the same thing
 partition_column: Year

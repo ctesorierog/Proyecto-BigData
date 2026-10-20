@@ -35,7 +35,7 @@ def run(spark, cfg, data_dir):
     years = range(cfg["data"]["first_year"], cfg["data"]["last_year"] + 1)
 
     plan = [(data_dir / f"{y}.csv", zones["raw_flights"]) for y in years]
-    plan += [(data_dir / n, zones["raw_lookup"]) for n in ("airports.csv", "carriers.csv")]
+    plan += [(data_dir / n, zones["raw_lookup"]) for n in cfg["data"]["lookup_files"]]
 
     absent = [str(p) for p, _ in plan if not p.exists()]
     if absent:
