@@ -1,0 +1,15 @@
+# Dataset: downloaded by the script, never committed
+data/
+*.bz2
+
+# Local settings
+.env
+
+# Python / Jupyter clutter
+__pycache__/
+.ipynb_checkpoints/
+
+# Files Spark creates when run locally
+spark-warehouse/
+metastore_db/
+derby.log

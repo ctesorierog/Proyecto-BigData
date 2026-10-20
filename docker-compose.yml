@@ -1,107 +1,124 @@
-# Test cluster: HDFS (1 namenode + 2 datanodes) + Spark standalone (1 master + 2 workers) + Jupyter
-# YARN is left out on purpose to save RAM; Spark uses its own standalone scheduler.
-# Run from this folder:  docker compose up -d
-name: pruebas
+name: proyecto-bigdata
+
+# Settings shared by all Hadoop containers (written once, reused below)
+x-hadoop-env: &hadoop-env
+  CORE_CONF_fs_defaultFS: "hdfs://namenode:9000"
+  CORE_CONF_hadoop_http_staticuser_user: "root"
+  HDFS_CONF_dfs_replication: "2"
+  HDFS_CONF_dfs_webhdfs_enabled: "true"
+  HDFS_CONF_dfs_permissions_enabled: "false"
+  HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check: "false"
 
 services:
+  # The librarian: keeps the catalog of which block is on which DataNode
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
-    container_name: pruebas-namenode
+    hostname: namenode
     restart: unless-stopped
+    environment:
+      <<: *hadoop-env
+      CLUSTER_NAME: "proyecto-bigdata"
     ports:
-      - 9870:9870   # HDFS web UI
-      - 9000:9000   # HDFS RPC
+      - "9870:9870"   # HDFS web page
     volumes:
       - hadoop_namenode:/hadoop/dfs/name
-      - /home/shadow33/zipmuygrande:/data:ro   # airline CSVs, to load with hdfs dfs -put
-    environment:
-      - CLUSTER_NAME=pruebas
-      - HDFS_CONF_dfs_replication=2
-    env_file:
-      - ../hadoop.env
+      - ./data:/data:ro   # your laptop's data/ folder, visible inside as /data
 
+  # The shelves: store the 128 MB blocks
   datanode1:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
-    container_name: pruebas-datanode1
+    hostname: datanode1
     restart: unless-stopped
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9870"
     volumes:
       - hadoop_datanode1:/hadoop/dfs/data
-    environment:
-      SERVICE_PRECONDITION: "namenode:9870"
-      HDFS_CONF_dfs_replication: 2
-    env_file:
-      - ../hadoop.env
 
   datanode2:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
-    container_name: pruebas-datanode2
+    hostname: datanode2
     restart: unless-stopped
+    environment:
+      <<: *hadoop-env
+      SERVICE_PRECONDITION: "namenode:9870"
     volumes:
       - hadoop_datanode2:/hadoop/dfs/data
-    environment:
-      SERVICE_PRECONDITION: "namenode:9870"
-      HDFS_CONF_dfs_replication: 2
-    env_file:
-      - ../hadoop.env
 
-  # Spark master + workers use the same image as the spark-course Jupyter container,
-  # so Spark (4.x) and Python versions match between driver and executors.
+  # The boss: splits work into tasks and hands them to workers
   spark-master:
-    image: quay.io/jupyter/pyspark-notebook
-    container_name: pruebas-spark-master
+    image: &spark-image quay.io/jupyter/pyspark-notebook@sha256:80430186e2e97c5e0a9a3c117798d4007bc0a289b8a72cf3a9fc92f044b4c4f1
     hostname: spark-master
     restart: unless-stopped
+    healthcheck:
+      disable: true
     command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.master.Master",
               "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
     ports:
-      - 8080:8080   # Spark master web UI
-      - 7077:7077   # Spark master RPC
+      - "8080:8080"   # Spark master web page
 
-  spark-worker1: &spark-worker
-    image: quay.io/jupyter/pyspark-notebook
-    container_name: pruebas-spark-worker1
+  # The readers: run the tasks (2 cores, 2 GB each)
+  spark-worker1:
+    image: *spark-image
     hostname: spark-worker1
     restart: unless-stopped
+    healthcheck:
+      disable: true
     command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker",
               "--cores", "2", "--memory", "2g", "--webui-port", "8081",
-              "--work-dir", "/tmp/spark-work",   # default $SPARK_HOME/work is not writable by jovyan
+              "--work-dir", "/tmp/spark-work",
               "spark://spark-master:7077"]
     environment:
-      - HADOOP_USER_NAME=root
+      HADOOP_USER_NAME: "root"
     volumes:
-      # Same path as in the notebook container, so relative paths like "data/sales" work
-      - /home/shadow33/spark-course:/home/jovyan/work
+      - ./:/home/jovyan/work
     ports:
-      - 8081:8081
+      - "8081:8081"
     depends_on:
       - spark-master
 
   spark-worker2:
-    <<: *spark-worker
-    container_name: pruebas-spark-worker2
+    image: *spark-image
     hostname: spark-worker2
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    command: ["/usr/local/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker",
+              "--cores", "2", "--memory", "2g", "--webui-port", "8081",
+              "--work-dir", "/tmp/spark-work",
+              "spark://spark-master:7077"]
+    environment:
+      HADOOP_USER_NAME: "root"
+    volumes:
+      - ./:/home/jovyan/work
     ports:
-      - 8082:8081
+      - "8082:8081"
+    depends_on:
+      - spark-master
 
-  # Jupyter (driver), same setup as the spark-course container but attached to this cluster
+  # Your desk: Jupyter, where you write PySpark (the "driver")
   jupyter:
-    image: quay.io/jupyter/pyspark-notebook
-    container_name: pruebas-jupyter
+    image: *spark-image
     hostname: jupyter
     restart: unless-stopped
     environment:
-      - HADOOP_USER_NAME=root
-      # SparkSession.builder.getOrCreate() connects to the cluster instead of local[*]
-      - PYSPARK_SUBMIT_ARGS=--master spark://spark-master:7077 --driver-memory 1g --executor-memory 2g pyspark-shell
+      HADOOP_USER_NAME: "root"
+      PYSPARK_SUBMIT_ARGS: >-
+        --master spark://spark-master:7077
+        --driver-memory 1g
+        --executor-memory 1g
+        --executor-cores 2
+        pyspark-shell
     volumes:
-      - /home/shadow33/spark-course:/home/jovyan/work
+      - ./:/home/jovyan/work
     ports:
-      - 8888:8888   # Jupyter
-      - 4040:4040   # Spark application UI
+      - "8888:8888"   # Jupyter
+      - "4040:4040"   # Spark job page (only while a job runs)
     depends_on:
       - spark-master
       - namenode
 
+# Docker-managed storage so HDFS data survives restarts
 volumes:
   hadoop_namenode:
   hadoop_datanode1:
