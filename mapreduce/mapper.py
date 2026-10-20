@@ -7,7 +7,7 @@ YEAR, CARRIER, ARR_DELAY, CANCELLED, DIVERTED = 0, 8, 14, 21, 23
 
 for line in io.TextIOWrapper(sys.stdin.buffer, encoding="latin-1"):
     f = line.rstrip("\r\n").split(",")
-    if len(f) < 24 or f[YEAR] == "Year":               # cabecera de cada fichero o línea rota
+    if len(f) < 24 or not f[YEAR].isdigit():           # cabecera ("Year"), línea rota o año vacío
         continue
     if f[CANCELLED] != "0" or f[DIVERTED] != "0":      # solo vuelos operados
         continue

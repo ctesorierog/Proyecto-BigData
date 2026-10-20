@@ -13,3 +13,6 @@ __pycache__/
 spark-warehouse/
 metastore_db/
 derby.log
+# Ficheros de prueba que genera el notebook del integrante 3 (sección 4.4)
+mapreduce/sample.csv
+mapreduce/local_out*.tsv
