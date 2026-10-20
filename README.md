@@ -1,91 +1,133 @@
-# Proyecto-BigData
-## Clúster de pruebas: HDFS + Spark + Jupyter
+# Proyecto Big Data – Airline On-Time Performance (1987–2008)
 
-Entorno de pruebas con Docker Compose que levanta un clúster **HDFS** con 2 DataNodes, un clúster **Spark standalone** con 2 workers y un **Jupyter** con PySpark conectado a ambos. Está pensado para trabajar con los notebooks de `~/spark-course` y con el dataset de vuelos de `~/zipmuygrande` (Airline On-Time, 1987–2008, ~11,5 GB).
+Arquitectura Big Data local con **HDFS + Spark en Docker** sobre los vuelos entre aeropuertos de EE. UU. (Harvard Dataverse, `doi:10.7910/DVN/HG7NV7`): ~120 M de filas, ~11,5 GB en CSV. Un único comando levanta el clúster y otro ejecuta el pipeline completo, de la descarga a los resultados.
 
-### Arquitectura
-
-| Servicio | Imagen | Función |
+| Workstream | Responsable | Carpetas |
 |---|---|---|
-| `namenode` | `bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8` | Maestro de HDFS: guarda los metadatos (qué bloques forman cada fichero y en qué DataNode están). Monta `~/zipmuygrande` en `/data` (solo lectura) para subir los CSV. |
-| `datanode1`, `datanode2` | `bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8` | Guardan los bloques de datos. Con `dfs.replication=2` cada bloque tiene una copia en cada DataNode. |
-| `spark-master` | `quay.io/jupyter/pyspark-notebook` | Maestro de Spark standalone: reparte el trabajo entre los workers. |
-| `spark-worker1`, `spark-worker2` | `quay.io/jupyter/pyspark-notebook` | Ejecutores de Spark, con **2 cores y 2 GB** cada uno. Montan `~/spark-course` en la misma ruta que Jupyter, así que las rutas relativas (`data/sales`) funcionan. |
-| `jupyter` | `quay.io/jupyter/pyspark-notebook` | Driver de PySpark. Monta `~/spark-course` en `/home/jovyan/work`. |
+| 1. Infraestructura y pipeline | Carlos | `docker-compose.yml`, `config/`, `scripts/` |
+| 2. Spark y ML | Felipe | `spark/` |
+| 3. MapReduce, reto e informe | Odei | `mapreduce/`, `docs/`, `miembro3_mapreduce_reto.ipynb` |
 
-#### Decisiones de diseño
+`evidence/` es compartida: capturas, `fsck`, tiempos y logs de cada ejecución.
 
-- **Misma imagen para Jupyter y Spark.** El driver (Jupyter) y los executors tienen que tener la misma versión de Spark (4.x) y de Python. Por eso los workers no usan las imágenes `bde2020/spark-*`, que traen Spark 3.3 y Python 3.7.
-- **2 DataNodes.** Es el mínimo para que haya replicación y tolerancia a fallos. En una sola máquina, más DataNodes no aceleran nada (todos comparten el mismo disco) y consumen RAM.
-- **2 workers × 2 cores × 2 GB.** Pensado para un equipo de 8 cores y 16 GB de RAM: deja recursos libres para HDFS, el driver y el sistema operativo.
-- **Sin YARN.** Spark usa su propio planificador (standalone). Así se ahorran ~2 GB de RAM.
-- **`PYSPARK_SUBMIT_ARGS`** en Jupyter hace que `SparkSession.builder.getOrCreate()` se conecte al clúster (`spark://spark-master:7077`) en lugar de ejecutarse en `local[*]`.
-- **`HADOOP_USER_NAME=root`** permite escribir en HDFS sin problemas de permisos (atajo de laboratorio, no para producción).
+## Requisitos
 
-### Puesta en marcha
+- Docker Desktop con **≥ 8 GB de RAM** asignados (Settings → Resources).
+- **≥ 46 GB de disco libre**: 11,5 GB de datos locales + ~23 GB en HDFS (replicación 2) + zona curated.
+- Nada más: Python, PySpark y Hadoop vienen dentro de las imágenes.
 
-Hay que parar antes el resto de contenedores que usan los mismos puertos:
+## Arquitectura del clúster
+
+`docker compose up -d` arranca 7 contenedores en una red común:
+
+| Servicio | Imagen | Función | Recursos |
+|---|---|---|---|
+| `namenode` | `bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8` | Maestro de HDFS: metadatos (qué bloques forman cada fichero y en qué DataNode están). Ve la carpeta `data/` del repo como `/data` (solo lectura). | – |
+| `datanode1`, `datanode2` | `bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8` | Guardan los bloques de 128 MB. Con `dfs.replication=2` cada bloque está en los dos. | – |
+| `spark-master` | `quay.io/jupyter/pyspark-notebook@sha256:8043…` | Planificador de Spark standalone: reparte tareas entre los workers. | – |
+| `spark-worker1`, `spark-worker2` | misma imagen | Ejecutan las tareas. | 2 cores · 2 GB cada uno |
+| `jupyter` | misma imagen | Driver de PySpark (notebooks y scripts). Ve el repo como `/home/jovyan/work`. | driver 1 GB |
+
+**Decisiones de diseño**
+
+- **2 DataNodes y replicación 2**: es el mínimo con el que la replicación es real y el `fsck` muestra cada bloque en dos nodos. En un solo portátil más DataNodes no aceleran nada (comparten disco) y consumen RAM.
+- **2 workers × 2 cores × 2 GB**: el reparto entre máquinas es visible y todo cabe en los 8 GB de Docker (~7 GB con HDFS, master y driver).
+- **Misma imagen, fijada por digest, para master, workers y Jupyter**: driver y executors necesitan exactamente la misma versión de Spark (4.2.0) y de Python; el digest garantiza el mismo contenido en todos los portátiles.
+- **Sin YARN**: Spark usa su planificador standalone y Hadoop Streaming se ejecuta en modo local dentro del NameNode. Ahorra ~2 GB de RAM.
+- **Configuración de Hadoop en el propio Compose** (bloque `x-hadoop-env`), sin ficheros externos ni rutas personales: el repo funciona tal cual al clonarlo.
+- `--conf spark.hadoop.dfs.replication=2`: por defecto un cliente Spark escribe 3 réplicas, más que DataNodes tenemos.
+- Workers con `--work-dir /tmp/spark-work`: el usuario `jovyan` de la imagen no puede escribir en `/usr/local/spark/work`.
+- `HADOOP_USER_NAME=root` y permisos HDFS desactivados: atajo de laboratorio, no para producción.
+
+## Puesta en marcha
 
 ```bash
-docker stop spark-course                 # Jupyter antiguo (8888, 4040)
-(cd .. && docker compose down)           # clúster Hadoop principal (9870, 9000)
+git clone https://github.com/ctesorierog/Proyecto-BigData.git
+cd Proyecto-BigData
+docker compose up -d          # la primera vez descarga las imágenes (~3 GB)
+docker compose ps             # 7 contenedores "Up"
 ```
 
-Arrancar el clúster:
+Si hay otro clúster usando los mismos puertos (p. ej. el `docker-hadoop` de clase), hay que pararlo antes.
+
+| Interfaz | URL |
+|---|---|
+| HDFS NameNode | http://localhost:9870 (*Datanodes* → 2 en servicio) |
+| Spark Master | http://localhost:8080 (2 workers ALIVE) |
+| Spark Workers | http://localhost:8081, http://localhost:8082 |
+| Jupyter | http://localhost:8888 – enlace con token: `docker compose logs jupyter` |
+| Spark Application UI | http://localhost:4040 (solo con una sesión abierta) |
+
+Parar: `docker compose down` (conserva HDFS) · `docker compose down -v` (borra también los volúmenes de HDFS).
+
+## Ejecutar el pipeline
 
 ```bash
-cd pruebas
-docker compose up -d
-docker compose ps                        # los 6 contenedores deben estar "Up"
-docker logs pruebas-jupyter 2>&1 | grep token   # enlace de Jupyter con token
+docker compose exec jupyter python work/scripts/run_pipeline.py
 ```
 
-Parar el clúster:
+Pasos, siempre en este orden (se pueden elegir con `--steps`, p. ej. `--steps ingest etl`):
 
-```bash
-docker compose down        # conserva los datos de HDFS
-docker compose down -v     # borra también los volúmenes de HDFS
-```
-
-### Enlaces
-
-| Interfaz | URL | Qué se ve |
+| Paso | Código | Qué hace |
 |---|---|---|
-| Jupyter | http://localhost:8888 | Notebooks de `spark-course` (carpeta `work`) |
-| HDFS NameNode | http://localhost:9870 | Estado de HDFS, DataNodes vivos, explorador de ficheros (*Utilities → Browse the file system*) |
-| Spark Master | http://localhost:8080 | Workers registrados y aplicaciones en ejecución |
-| Spark Worker 1 | http://localhost:8081 | Executors del worker 1 |
-| Spark Worker 2 | http://localhost:8082 | Executors del worker 2 |
-| Spark Application UI | http://localhost:4040 | Jobs, stages y tareas de la sesión activa (solo con una SparkSession abierta) |
+| `download` | `scripts/download_data.py` | Descarga de Harvard Dataverse (API pública, sin cuenta ni clave) los 22 `AAAA.csv.bz2` + `airports.csv` y `carriers.csv`, y los descomprime en `data/`. |
+| `ingest` | `scripts/ingest_raw.py` | Copia los CSV, sin tocarlos, a la zona raw de HDFS. |
+| `etl` | `spark/etl.py` | Limpieza con esquema explícito → Parquet particionado por `Year` (zona curated). |
+| `quality` | `spark/quality.py` | Controles de calidad: nulos, rangos, duplicados. |
+| `analysis` | `spark/analysis.py` | Las 3 preguntas analíticas → zona results. |
+| `ml` | `spark/ml_baseline.py` | Baseline de MLlib (`ArrDelay > 15`). |
 
-### Cargar los datos en HDFS
+Cada paso de `spark/` es un fichero con una función `run(spark, cfg)`; si el fichero aún no existe, el pipeline lo marca como *skipped*. Cada ejecución deja un log con estado y tiempos en `evidence/pipeline_runs/run_<fecha>.json`.
 
-```bash
-docker exec pruebas-namenode hdfs dfs -mkdir -p /airline/flights /airline/lookup
-docker exec pruebas-namenode bash -c 'hdfs dfs -put -f /data/19*.csv /data/20*.csv /airline/flights/'
-docker exec pruebas-namenode bash -c 'hdfs dfs -put -f /data/airports.csv /data/carriers.csv /data/plane-data.csv /data/variable-descriptions.csv /airline/lookup/'
-docker exec pruebas-namenode hdfs dfs -du -h /airline
+**Idempotencia** (ejecutarlo dos veces no duplica ni corrompe nada):
+
+- `download` salta los ficheros que ya están en `data/`; las descargas se escriben como `*.part` y solo se renombran al terminar.
+- `ingest` salta los ficheros que ya están en HDFS con el mismo tamaño; los nuevos se suben a un nombre temporal oculto y se renombran, así la zona raw nunca contiene un fichero a medias. Al final comprueba que están los 24 ficheros con su tamaño exacto.
+- Los pasos de Spark escriben con `mode("overwrite")`.
+
+Prueba: dos ejecuciones seguidas dan `raw zone OK: 24 files (0 uploaded, 24 already there)` (`evidence/pipeline_runs/`).
+
+## Configuración
+
+Todas las rutas y parámetros están en **`config/pipeline.yaml`**; ningún script ni notebook las escribe a mano.
+
+```yaml
+zones:
+  raw_flights: /airline/raw/flights      # CSV originales, sin tocar
+  raw_lookup:  /airline/raw/lookup       # airports.csv, carriers.csv
+  curated:     /airline/curated/flights  # Parquet limpio, particionado por Year
+  results:     /airline/results          # resultados pequeños (CSV permitido)
 ```
 
-### Uso desde un notebook
+También guarda las reglas comunes a todos los workstreams: vuelo válido (`Cancelled = 0 AND Diverted = 0 AND ArrDelay IS NOT NULL`), retrasado (`ArrDelay > 15`) y mínimo de 100 vuelos por grupo.
 
-```python
-import os
-os.environ["HADOOP_USER_NAME"] = "root"
+## Datos
 
-from pyspark.sql import SparkSession, functions as F
-spark = SparkSession.builder.appName("vuelos").getOrCreate()   # se conecta al clúster
+- 22 ficheros anuales, 1987–2008 (2008 solo incluye los primeros meses: 234 MB frente a ~700 MB de un año completo).
+- Zona raw en HDFS: **10,8 GiB** de datos, **21,6 GiB** en disco por la replicación 2.
+- `data/` está en `.gitignore`: los datos nunca se suben a GitHub; se reproducen con `download`.
 
-HDFS = "hdfs://namenode:9000"
-flights = (spark.read.option("header", True).option("inferSchema", True)
-                .csv(f"{HDFS}/airline/flights"))
-airports = spark.read.option("header", True).csv(f"{HDFS}/airline/lookup/airports.csv")
+## Evidencias (workstream 1)
 
-# Opcional: convertir a Parquet una vez para que las consultas sean mucho más rápidas
-flights.write.mode("overwrite").partitionBy("Year").parquet(f"{HDFS}/airline/flights_parquet")
+| Fichero | Muestra |
+|---|---|
+| `evidence/spark_master_2_workers.png` | Spark Master con 2 workers ALIVE (4 cores, 4 GB) |
+| `evidence/fsck_2007.txt` | `hdfs fsck` de `2007.csv`: 703 MB → 6 bloques (5 × 128 MB + 31,8 MB), cada uno en los 2 DataNodes, estado HEALTHY |
+| `evidence/pipeline_runs/` | Dos ejecuciones seguidas del pipeline con el mismo resultado |
+
+## Estructura del repositorio
+
+```
+docker-compose.yml     clúster completo (HDFS + Spark + Jupyter)
+config/pipeline.yaml   rutas y parámetros
+scripts/               descarga, ingesta y punto de entrada del pipeline
+spark/                 ETL, calidad, consultas y ML (workstream 2)
+mapreduce/             Hadoop Streaming: mapper, combiner, reducer (workstream 3)
+docs/                  informe y diagrama
+evidence/              capturas, fsck, tiempos, logs
+data/                  CSV locales (no se suben)
 ```
 
-Notas:
+## Git
 
-- Los notebooks que usan `.master("local[*]")` se ejecutan solo dentro del contenedor de Jupyter. Para usar el clúster, quita esa línea.
-- Si un kernel estaba abierto antes de arrancar el clúster, reinícialo (*Kernel → Restart*).
+Antes de cada push: `git pull --rebase`. Commits pequeños y sin datos.
