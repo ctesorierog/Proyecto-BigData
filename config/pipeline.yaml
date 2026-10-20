@@ -1,0 +1,29 @@
+# Single source of truth for paths and parameters.
+# Every script and notebook reads from here instead of hardcoding paths.
+
+hdfs:
+  url: hdfs://namenode:9000
+  replication: 2               # = number of DataNodes
+
+spark:
+  master: spark://spark-master:7077
+
+# HDFS zones (Block B)
+zones:
+  raw_flights: /airline/raw/flights      # original yearly CSVs, untouched
+  raw_lookup:  /airline/raw/lookup       # airports.csv, carriers.csv
+  curated:     /airline/curated/flights  # clean Parquet, partitioned by Year
+  results:     /airline/results          # small outputs (CSV allowed)
+
+# Local data on the laptop (repo folder data/, git-ignored)
+data:
+  local_dir: data              # seen as /data in the namenode, /home/jovyan/work/data in Jupyter
+  first_year: 1987
+  last_year: 2008
+  source_doi: doi:10.7910/DVN/HG7NV7     # Harvard Dataverse
+
+# Shared rules, so all workstreams compute the same thing
+partition_column: Year
+valid_flight: "Cancelled = 0 AND Diverted = 0 AND ArrDelay IS NOT NULL"
+delayed: "ArrDelay > 15"
+min_flights_per_group: 100

@@ -1,0 +1,46 @@
+﻿FSCK started by root (auth:SIMPLE) from /172.19.0.3 for path /airline/raw/flights/2007.csv at Tue Oct 20 15:58:12 UTC 2026
+/airline/raw/flights/2007.csv 702878193 bytes, replicated: replication=2, 6 block(s):  OK
+0. BP-689944207-127.0.0.1-1792507408207:blk_1073741920_1096 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK], DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK]]
+1. BP-689944207-127.0.0.1-1792507408207:blk_1073741921_1097 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK], DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK]]
+2. BP-689944207-127.0.0.1-1792507408207:blk_1073741922_1098 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK], DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK]]
+3. BP-689944207-127.0.0.1-1792507408207:blk_1073741923_1099 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK], DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK]]
+4. BP-689944207-127.0.0.1-1792507408207:blk_1073741924_1100 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK], DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK]]
+5. BP-689944207-127.0.0.1-1792507408207:blk_1073741925_1101 len=31789553 Live_repl=2  [DatanodeInfoWithStorage[172.19.0.4:9866,DS-414f4ba1-3561-4e22-a3dd-15bf011f81dd,DISK], DatanodeInfoWithStorage[172.19.0.2:9866,DS-937f82e2-43d7-46b1-80dd-615e9c3f42c8,DISK]]
+
+
+Status: HEALTHY
+ Number of data-nodes:	2
+ Number of racks:		1
+ Total dirs:			0
+ Total symlinks:		0
+
+Replicated Blocks:
+ Total size:	702878193 B
+ Total files:	1
+ Total blocks (validated):	6 (avg. block size 117146365 B)
+ Minimally replicated blocks:	6 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	0 (0.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	2
+ Average block replication:	2.0
+ Missing blocks:		0
+ Corrupt blocks:		0
+ Missing replicas:		0 (0.0 %)
+
+Erasure Coded Block Groups:
+ Total size:	0 B
+ Total files:	0
+ Total block groups (validated):	0
+ Minimally erasure-coded block groups:	0
+ Over-erasure-coded block groups:	0
+ Under-erasure-coded block groups:	0
+ Unsatisfactory placement block groups:	0
+ Average block group size:	0.0
+ Missing block groups:		0
+ Corrupt block groups:		0
+ Missing internal blocks:	0
+FSCK ended at Tue Oct 20 15:58:12 UTC 2026 in 1 milliseconds
+
+
+The filesystem under path '/airline/raw/flights/2007.csv' is HEALTHY
